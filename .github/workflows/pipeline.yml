@@ -81,9 +81,9 @@ jobs:
           python - <<'PY'
           import os
           from huggingface_hub import HfApi, upload_file
-          api = HfApi()
-          me = api.whoami()
-          username = me["name"]
+          hf_token = os.environ.get("HUGGINGFACE_HUB_TOKEN")
+          if not hf_token:
+              raise SystemExit("ERROR: HUGGINGFACE_HUB_TOKEN not found in environment. Make sure HF_TOKEN secret exists in repo.")
           space_repo = os.environ.get("HF_SPACE_REPO", f"Vilas97Gupta/tourism-project")
           deploy_dir = "deployment"
           for fname in ["app.py","requirements.txt","Dockerfile"]:
@@ -94,7 +94,7 @@ jobs:
                       path_in_repo=fname,
                       repo_id=space_repo,
                       repo_type="space",
-                      token=os.environ.get("HUGGINGFACE_HUB_TOKEN")
+                      token=hf_token
                   )
                   print("Uploaded", fname)
               else:
