@@ -1,23 +1,18 @@
 name: Tourism Project Pipeline
-
 on:
   push:
     branches:
       - main
   workflow_dispatch:
-
 jobs:
-
   register-dataset:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install pandas datasets huggingface_hub
-
       - name: Upload Dataset to Hugging Face Hub
         env:
           HUGGINGFACE_HUB_TOKEN: ${{ secrets.HF_TOKEN }}
@@ -28,18 +23,15 @@ jobs:
           else
             echo "scripts/register_dataset.py not found — skipping"
           fi
-
   data-prep:
     needs: register-dataset
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install pandas scikit-learn datasets huggingface_hub
-
       - name: Run Data Preparation
         env:
           HUGGINGFACE_HUB_TOKEN: ${{ secrets.HF_TOKEN }}
@@ -50,22 +42,18 @@ jobs:
           else
             echo "scripts/data_prep.py not found — skipping"
           fi
-
   model-training:
     needs: data-prep
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install xgboost scikit-learn joblib mlflow huggingface_hub
-
       - name: Start MLflow Server (background)
         run: |
           nohup mlflow ui --host 0.0.0.0 --port 5000 & sleep 5 || true
-
       - name: Model Building
         env:
           HUGGINGFACE_HUB_TOKEN: ${{ secrets.HF_TOKEN }}
@@ -76,37 +64,40 @@ jobs:
           else
             echo "scripts/train_and_push.py not found — skipping"
           fi
-
   deploy-hosting:
     needs: [model-training, data-prep, register-dataset]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install huggingface_hub
-
       - name: Push files to Frontend Hugging Face Space
         env:
           HUGGINGFACE_HUB_TOKEN: ${{ secrets.HF_TOKEN }}
           HF_SPACE_REPO: ${{ secrets.HF_SPACE_REPO }}
         run: |
           python - <<'PY'
-import os
-from huggingface_hub import HfApi, upload_file
-api = HfApi()
-me = api.whoami()
-username = me["name"]
-space_repo = os.environ.get("HF_SPACE_REPO", f"{username}/wellness-space")
-deploy_dir = "deployment"
-for fname in ["app.py","requirements.txt","Dockerfile"]:
-    path = os.path.join(deploy_dir, fname)
-    if os.path.exists(path):
-        upload_file(path_or_fileobj=path, path_in_repo=fname, repo_id=space_repo, repo_type="space", token=os.environ.get("HUGGINGFACE_HUB_TOKEN"))
-        print("Uploaded", fname)
-    else:
-        print("Skipping (not found):", fname)
-print("Done. Space:", space_repo)
-PY
+          import os
+          from huggingface_hub import HfApi, upload_file
+          api = HfApi()
+          me = api.whoami()
+          username = me["name"]
+          space_repo = os.environ.get("HF_SPACE_REPO", f"Vilas97Gupta/tourism-project")
+          deploy_dir = "deployment"
+          for fname in ["app.py","requirements.txt","Dockerfile"]:
+              path = os.path.join(deploy_dir, fname)
+              if os.path.exists(path):
+                  upload_file(
+                      path_or_fileobj=path,
+                      path_in_repo=fname,
+                      repo_id=space_repo,
+                      repo_type="space",
+                      token=os.environ.get("HUGGINGFACE_HUB_TOKEN")
+                  )
+                  print("Uploaded", fname)
+              else:
+                  print("Skipping (not found):", fname)
+          print("Done. Space:", space_repo)
+          PY
