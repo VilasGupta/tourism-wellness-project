@@ -50,7 +50,7 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install xgboost scikit-learn joblib mlflow huggingface_hub
+          pip install xgboost scikit-learn joblib mlflow huggingface_hub datasets pandas
       - name: Start MLflow Server (background)
         run: |
           nohup mlflow ui --host 0.0.0.0 --port 5000 & sleep 5 || true
