@@ -7,7 +7,7 @@ import os
 # -----------------------------
 # CONFIG
 # -----------------------------
-HF_MODEL_REPO = "Vilas97Gupta/tourism-project"
+HF_MODEL_REPO = "Vilas97Gupta/wellness-model"
 MODEL_FILENAME = "best_model.joblib"
 
 # -----------------------------
