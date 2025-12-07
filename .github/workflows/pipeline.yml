@@ -31,7 +31,7 @@ jobs:
       - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pandas scikit-learn datasets huggingface_hub
+          pip install xgboost scikit-learn joblib mlflow huggingface_hub datasets pandas
       - name: Run Data Preparation
         env:
           HUGGINGFACE_HUB_TOKEN: ${{ secrets.HF_TOKEN }}
