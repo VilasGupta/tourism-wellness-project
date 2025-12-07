@@ -57,6 +57,23 @@ input_dict = {
 
 df_input = pd.DataFrame(input_dict)
 
+label_maps = {
+    "TypeofContact": {"Company Invited": 1, "Self Inquiry": 0},
+    "Gender": {"Male": 1, "Female": 0}
+}
+
+# Apply mappings
+for col, mapping in label_maps.items():
+    if col in df_input.columns:
+        df_input[col] = df_input[col].map(mapping)
+
+# Ensure numeric columns are numeric (coerce objects -> NaN), then fill NaNs with 0
+for c in df_input.columns:
+    if df_input[c].dtype == "object":
+        df_input[c] = pd.to_numeric(df_input[c], errors="coerce")
+
+df_input = df_input.fillna(0)
+
 st.subheader("Input preview")
 st.dataframe(df_input)
 
